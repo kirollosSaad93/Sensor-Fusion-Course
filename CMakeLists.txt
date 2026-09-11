@@ -1,20 +1,23 @@
-cmake_minimum_required(VERSION 3.10)
-project(playback LANGUAGES C CXX)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-find_package(PCL REQUIRED COMPONENTS common io filters visualization)
-find_package(Boost REQUIRED COMPONENTS filesystem system)
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+
+add_definitions(-std=c++11)
+
+set(CXX_FLAGS "-Wall")
+set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
+
+project(playback)
+
+find_package(PCL 1.2 REQUIRED)
+
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
-add_executable(environment src/environment.cpp src/render/render.cpp)
-target_link_libraries(environment ${PCL_LIBRARIES} Boost::filesystem Boost::system)
-target_compile_definitions(environment PRIVATE DEFAULT_DATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}/src/sensors/data/pcd/data_1")
-include(CTest)
-if(BUILD_TESTING)
-    add_executable(pipeline_tests tests/pipeline_tests.cpp)
-    target_link_libraries(pipeline_tests ${PCL_LIBRARIES} Boost::filesystem Boost::system)
-    add_test(NAME algorithms COMMAND pipeline_tests)
-    add_test(NAME stream_data_1 COMMAND environment --headless ${CMAKE_CURRENT_SOURCE_DIR}/src/sensors/data/pcd/data_1)
-    add_test(NAME stream_data_2 COMMAND environment --headless ${CMAKE_CURRENT_SOURCE_DIR}/src/sensors/data/pcd/data_2)
-endif()
+list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
+
+
+add_executable (environment src/environment.cpp src/render/render.cpp src/processPointClouds.cpp)
+target_link_libraries (environment ${PCL_LIBRARIES})
+
+
+
+
