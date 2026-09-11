@@ -29,3 +29,32 @@ A few updates to the instructions above were needed.
 * BUILD_visualization needed to be manually turned on, this link shows you how to do that,
 http://www.pointclouds.org/documentation/tutorials/building_pcl.php
 
+
+## Obstacle detection project
+
+The recorded PCD stream runs voxel downsampling and region/roof filtering,
+custom three-point 3D RANSAC road segmentation, and custom Euclidean clustering
+using the balanced 3D KD-Tree in `src/kdtree.h`. Each accepted cluster receives
+one axis-aligned bounding box. PCL is used for point-cloud IO, filtering, and
+visualization; segmentation and clustering do not call PCL algorithms.
+
+Build and test with a C++14 compiler, CMake, Make, PCL, and Boost installed:
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+make -C build -j2
+ctest --test-dir build --output-on-failure
+./build/environment
+```
+
+The default viewer loops through `data_1`. Supply another PCD directory as an
+argument to use a different stream. For a single pass without a display:
+
+```sh
+./build/environment --headless src/sensors/data/pcd/data_1
+```
+
+The tests check KD-Tree radius searches against brute force, plane segmentation,
+3D cluster membership and size limits, bounding-box bounds, and processing of
+both included streams. Visual review is still needed to judge object identity
+and bounding-box continuity; cluster IDs are local to each frame.

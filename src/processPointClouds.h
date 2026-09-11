@@ -8,9 +8,13 @@
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/crop_box.h>
-#include <pcl/kdtree/kdtree.h>
-#include <pcl/segmentation/sac_segmentation.h>
-#include <pcl/segmentation/extract_clusters.h>
+#include "kdtree.h"
+#include <boost/filesystem.hpp>
+#include <random>
+#include <cmath>
+#include <stdexcept>
+
+
 #include <pcl/common/transforms.h>
 #include <iostream> 
 #include <string>  
