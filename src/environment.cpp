@@ -96,10 +96,52 @@ int main (int argc, char** argv)
     pcl::visualization::PCLVisualizer::Ptr viewer (new pcl::visualization::PCLVisualizer ("3D Viewer"));
     CameraAngle setAngle = XY;
     initCamera(setAngle, viewer);
-    simpleHighway(viewer);
+    ProcessPointClouds<pcl::PointXYZI> pointProcessor;
+    const auto stream =
+        pointProcessor.streamPcd("src/sensors/data/pcd/data_1");
 
-    while (!viewer->wasStopped ())
+    if (stream.empty())
     {
-        viewer->spinOnce ();
-    } 
+        std::cerr << "No PCD frames found." << std::endl;
+        return 1;
+    }
+
+    auto frame = stream.begin();
+
+    while (!viewer->wasStopped())
+    {
+        viewer->removeAllPointClouds();
+        viewer->removeAllShapes();
+
+        auto inputCloud = pointProcessor.loadPcd(frame->string());
+        auto filteredCloud = pointProcessor.FilterCloud(
+            inputCloud, 0.2f,
+            Eigen::Vector4f(-10, -6, -3, 1),
+            Eigen::Vector4f(30, 7, 2, 1));
+        auto segmented =
+            pointProcessor.SegmentPlane(filteredCloud, 150, 0.2f);
+
+        renderPointCloud(
+            viewer, segmented.second, "road", Color(0, 1, 0));
+
+        auto clusters =
+            pointProcessor.Clustering(segmented.first, 0.45f, 10, 1500);
+        int clusterId = 0;
+        for (const auto& cluster : clusters)
+        {
+            renderPointCloud(
+                viewer, cluster,
+                "obstacle" + std::to_string(clusterId),
+                Color(1, 0, 0));
+            renderBox(
+                viewer, pointProcessor.BoundingBox(cluster),
+                clusterId, Color(1, 1, 0));
+            ++clusterId;
+        }
+
+        viewer->spinOnce(100);
+        ++frame;
+        if (frame == stream.end())
+            frame = stream.begin();
+    }
 }
